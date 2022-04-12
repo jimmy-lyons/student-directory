@@ -15,9 +15,7 @@ def input_students
     puts "Place of Birth: "
     birth_place = gets.chomp
     
-    puts "List hobbies with comma separation:"
-    hobbies = gets.chomp.split(",")
-    @students << {name: name, cohort: cohort, age: age, birth_place: birth_place, hobbies: hobbies}
+    @students << {name: name, cohort: cohort, age: age, birth_place: birth_place}
     
     if @students.length != 1
       puts "Now we have #{@students.count} students - add a name or hit enter to exit."
@@ -44,19 +42,20 @@ def print_students
       puts "#{student[:name]} - (#{student[:cohort]})"
       puts "Age:".rjust(20) + " #{student[:age]}"
       puts "Place of Birth:".rjust(20) + " #{student[:birth_place]}"
-      puts "Hobbies:".rjust(20) + " #{student[:hobbies].join(",")}"
     end
   end
 end
 
 def print_footer
   puts "Overall, we have #{@students.count} great students"
+  puts "----------------"
 end
 
 def print_menu
   puts "1. Input the students"
   puts "2. Show the students"
   puts "3. Save the list to students.csv"
+  puts "4. Load the list from students.csv"
   puts "9. Exit"
 end
 
@@ -77,6 +76,8 @@ def process(selection)
     show_students
   when "3"
     save_students
+  when "4"
+    load_students
   when "9"
     exit
   else
@@ -87,9 +88,18 @@ end
 def save_students
   file = File.open("students.csv", "w")
   @students.each do |student|
-    student_data = [student[:name], student[:cohort], student[:age], student[:birth_place], student[:hobbies]]
+    student_data = [student[:name], student[:cohort], student[:age], student[:birth_place]]
     csv_line = student_data.join(",")
     file.puts csv_line
+  end
+  file.close
+end
+
+def load_students
+  file = File.open("students.csv", "r")
+  file.readlines.each do |line|
+    name, cohort, age, birth_place, hobbies = line.chomp.split(",")
+    @students << {name: name, cohort: cohort.to_sym, age: age, birth_place: birth_place}
   end
   file.close
 end
@@ -103,5 +113,3 @@ def interactive_menu
 end
 
 interactive_menu
-
-#change
