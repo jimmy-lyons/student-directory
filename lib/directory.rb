@@ -1,4 +1,5 @@
 @students = []
+@data_loaded = false
 
 def input_students
   puts "Please enter the names of the students"
@@ -17,7 +18,7 @@ def input_students
     puts "Place of Birth: "
     birth_place = STDIN.gets.chomp
     
-    @students << {name: name, cohort: cohort, age: age, birth_place: birth_place}
+    student_info_push(name, cohort, age, birth_place)
     
     if @students.length != 1
       puts "Now we have #{@students.count} students - add a name or hit enter to exit."
@@ -30,6 +31,11 @@ def input_students
   end
 end
 
+def student_info_push(name, cohort, age, birth_place)
+  cohort = cohort.to_sym
+  @students << {name: name, cohort: cohort, age: age, birth_place: birth_place}
+end
+
 def print_header
   puts "The students of Villains Academy"
   puts "----------------"
@@ -38,7 +44,6 @@ end
 def print_students
   puts "Which cohort would you like to see?"
   month = STDIN.gets.downcase.delete("\n").to_sym
-  print_header
   @students.map do |student|
     if student[:cohort] == month
       puts "#{student[:name]} - (#{student[:cohort]})"
@@ -49,16 +54,19 @@ def print_students
 end
 
 def print_footer
+  puts ""
   puts "Overall, we have #{@students.count} great students"
   puts "----------------"
 end
 
 def print_menu
+  puts ""
   puts "1. Input the students"
   puts "2. Show the students"
   puts "3. Save the list to students.csv"
   puts "4. Load the list from students.csv"
   puts "9. Exit"
+  puts ""
 end
 
 def show_students
@@ -68,6 +76,42 @@ def show_students
   else
     puts "No students in directory"
   end
+end
+
+def save_students
+  file = File.open("students.csv", "w")
+  @students.each do |student|
+    student_data = [student[:name], student[:cohort], student[:age], student[:birth_place]]
+    csv_line = student_data.join(",")
+    file.puts csv_line
+  end
+  file.close
+end
+
+def try_load_students
+  filename = ARGV.first
+  filename = "students.csv" if filename.nil?
+  if File.exist?(filename)
+    load_students(filename)
+    puts "Loaded #{@students.count} from #{filename}"
+  else
+    puts "Sorry, #{filename} does not exist"
+    exit
+  end
+end
+
+def load_students(filename = "students.csv")
+  if @data_loaded == true
+    puts "Students already loaded"
+    return
+  end
+  file = File.open(filename, "r")
+  file.readlines.each do |line|
+    name, cohort, age, birth_place = line.chomp.split(",")
+    student_info_push(name, cohort, age, birth_place)
+  end
+  file.close
+  @data_loaded = true
 end
 
 def process(selection)
@@ -85,37 +129,6 @@ def process(selection)
   else
     puts "I don't know what you meant, ask again"
   end
-end
-
-def save_students
-  file = File.open("students.csv", "w")
-  @students.each do |student|
-    student_data = [student[:name], student[:cohort], student[:age], student[:birth_place]]
-    csv_line = student_data.join(",")
-    file.puts csv_line
-  end
-  file.close
-end
-
-def try_load_students
-  filename = ARGV.first
-  return if filename.nil?
-  if File.exist?(filename)
-    load_students(filename)
-    puts "Loaded #{@students.count} from #{filename}"
-  else
-    puts "Sorry, #{filename} does not exist"
-    exit
-  end
-end
-
-def load_students(filename = "students.csv")
-  file = File.open(filename, "r")
-  file.readlines.each do |line|
-    name, cohort, age, birth_place, hobbies = line.chomp.split(",")
-    @students << {name: name, cohort: cohort.to_sym, age: age, birth_place: birth_place}
-  end
-  file.close
 end
 
 def interactive_menu
